@@ -1,0 +1,59 @@
+# Minimal compilable Unreal Engine project
+# Keep only project descriptor, source code, and required config.
+
+# Ignore everything by default
+/*
+
+# Keep gitignore itself
+!.gitignore
+
+# Keep Unreal project descriptor
+!*.uproject
+
+# Keep source and config required for compilation
+!Source/
+!Source/**
+!Config/
+!Config/**
+
+# Keep optional plugin/module descriptors if they are added later
+!Plugins/
+!Plugins/**/
+!Plugins/**/*.uplugin
+!Plugins/**/Source/
+!Plugins/**/Source/**
+!Plugins/**/Config/
+!Plugins/**/Config/**
+
+# Explicitly ignore generated/build/cache/editor files
+.vs/
+.vscode/
+.idea/
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# Ignore packaged/archive/local files
+*.7z
+*.zip
+*.rar
+*.tar
+*.gz
+*.tmp
+*.log
+*.sln
+*.opensdf
+*.sdf
+*.suo
+*.VC.db
+*.VC.opendb
+
+# Ignore non-code root files by default
+*.md
+*.html
+*.txt
+
+# Ignore UE content assets to keep repo code-only
+Content/
