@@ -19,10 +19,12 @@ public class tarkov_gas : ModuleRules
 			"GameplayTasks",
 			"GameplayTags",
 			"UMG",
-			"ModelViewViewModel"
+			"ModelViewViewModel",
+			"AIModule",
+			"NavigationSystem"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule", "AnimGraphRuntime" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "AnimGraphRuntime" });
 
 	}
 }

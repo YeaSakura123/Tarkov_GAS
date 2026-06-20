@@ -27,6 +27,8 @@ void AEFT_EnemyCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(ThisClass, bIsBeingLaunched);
+	DOREPLIFETIME(ThisClass, CombatTarget);
+	DOREPLIFETIME(ThisClass, AIState);
 }
 
 UAbilitySystemComponent* AEFT_EnemyCharacter::GetAbilitySystemComponent() const 
@@ -39,10 +41,32 @@ UAttributeSet* AEFT_EnemyCharacter::GetAttributeSet() const
 	return AttributeSet;
 }
 
+void AEFT_EnemyCharacter::SetCombatTarget(AActor* NewTarget)
+{
+	CombatTarget = NewTarget;
+}
+
+void AEFT_EnemyCharacter::SetAIState(EEFTEnemyAIState NewState)
+{
+	AIState = NewState;
+}
+
+bool AEFT_EnemyCharacter::IsAttackReady(float CurrentTime) const
+{
+	return CurrentTime - LastAttackTime >= AttackCooldown;
+}
+
+void AEFT_EnemyCharacter::MarkAttackStarted(float CurrentTime)
+{
+	LastAttackTime = CurrentTime;
+}
+
 void AEFT_EnemyCharacter::StopMovementUntilLanded()
 {
 	bIsBeingLaunched = true;
-	AAIController* AIController = Cast<AAIController>(GetOwner());
+	SetAIState(EEFTEnemyAIState::HitReact);
+
+	AAIController* AIController = Cast<AAIController>(GetController());
 	if (!IsValid(AIController)) return;
 	AIController->StopMovement();
 	if (!LandedDelegate.IsAlreadyBound(this, &ThisClass::EnableMovementOnLanded))
@@ -54,6 +78,7 @@ void AEFT_EnemyCharacter::StopMovementUntilLanded()
 void AEFT_EnemyCharacter::EnableMovementOnLanded(const FHitResult& Hit)
 {
 	bIsBeingLaunched = false;
+	SetAIState(EEFTEnemyAIState::Idle);
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, EFTTags::Events::Enemy::EndAttack, FGameplayEventData());
 	LandedDelegate.RemoveAll(this);
 }
@@ -82,8 +107,10 @@ void AEFT_EnemyCharacter::BeginPlay()
 void AEFT_EnemyCharacter::HandleDeath()
 {
 	Super::HandleDeath();
+	SetAIState(EEFTEnemyAIState::Dead);
+	SetCombatTarget(nullptr);
 	
-	AAIController* AIController = Cast<AAIController>(GetOwner());
+	AAIController* AIController = Cast<AAIController>(GetController());
 	if (!IsValid(AIController)) return;
 	AIController->StopMovement();
 }
