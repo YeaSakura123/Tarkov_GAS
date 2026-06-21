@@ -6,11 +6,21 @@ namespace EFTTags
 	namespace SetByCaller
 	{
 		UE_DEFINE_GAMEPLAY_TAG_COMMENT(Projectile, "EFTTags.SetByCaller.Projectile", "Tag for Set by Caller Magnitude for Projectiles");
+		UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage, "EFTTags.SetByCaller.Damage", "Generic Set by Caller Magnitude tag for weapon damage");
 	}
 
 	namespace Status
 	{
 		UE_DEFINE_GAMEPLAY_TAG_COMMENT(Sprinting, "EFTTags.Status.Sprinting", "Tag for Check is running");
+	}
+	namespace AI
+	{
+		namespace Subtree
+		{
+			UE_DEFINE_GAMEPLAY_TAG_COMMENT(Combat, "EFTTags.AI.Subtree.Combat", "Dynamic behavior tree injection tag for enemy combat subtree");
+			UE_DEFINE_GAMEPLAY_TAG_COMMENT(Search, "EFTTags.AI.Subtree.Search", "Dynamic behavior tree injection tag for enemy search subtree");
+			UE_DEFINE_GAMEPLAY_TAG_COMMENT(Patrol, "EFTTags.AI.Subtree.Patrol", "Dynamic behavior tree injection tag for enemy patrol subtree");
+		}
 	}
 	namespace EFTAbilities
 	{
@@ -22,6 +32,14 @@ namespace EFTTags
 		namespace Enemy
 		{
 			UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attack, "EFTTags.EFTAbilities.Enemy.Attack", "Tag for Enemy Attack Ability");
+		}
+	}
+	namespace Abilities
+	{
+		namespace Weapon
+		{
+			UE_DEFINE_GAMEPLAY_TAG_COMMENT(Fire, "EFTTags.Abilities.Weapon.Fire", "Tag for weapon fire abilities");
+			UE_DEFINE_GAMEPLAY_TAG_COMMENT(Reload, "EFTTags.Abilities.Weapon.Reload", "Tag for weapon reload abilities");
 		}
 	}
 	namespace Events

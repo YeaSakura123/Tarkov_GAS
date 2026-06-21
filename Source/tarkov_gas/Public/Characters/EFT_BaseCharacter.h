@@ -17,6 +17,8 @@ struct FOnAttributeChangeData;
 class UAttributeSet;
 class UGameplayEffect;
 class UGameplayAbility;
+class UEFT_WeaponComponent;
+class UEFT_WeaponDataAsset;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FASCInitialized, UAbilitySystemComponent*, ASC, UAttributeSet*, AS);
 
@@ -31,6 +33,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual UAttributeSet* GetAttributeSet() const {return nullptr;};
+	UEFT_WeaponComponent* GetWeaponComponent() const { return WeaponComponent; }
 	bool IsAlive() const {return bAlive;};
 	void SetAlive(bool bAliveStatus) {bAlive = bAliveStatus;};
 	
@@ -59,9 +62,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EFT|Abilities")
 	TSubclassOf<class UGameplayEffect> StaminaRegenEffect;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EFT|Weapon")
+	TObjectPtr<UEFT_WeaponDataAsset> DefaultWeaponData;
+
 	bool bStaminaRegenEffectApplied = false;
 	
 private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "EFT|Weapon", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UEFT_WeaponComponent> WeaponComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "EFT|Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;

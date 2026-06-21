@@ -5,8 +5,10 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AIController.h"
+#include "AI/EFT_EnemyAIConfigDataAsset.h"
 #include "AbilitySystem/EFT_AbilitySystemComponent.h"
 #include "AbilitySystem/EFT_AttributeSet.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "GameplayTags/EFTTags.h"
 #include "Net/UnrealNetwork.h"
 
@@ -51,6 +53,28 @@ void AEFT_EnemyCharacter::SetAIState(EEFTEnemyAIState NewState)
 	AIState = NewState;
 }
 
+void AEFT_EnemyCharacter::ApplyAIConfig()
+{
+	if (!IsValid(AIConfig)) return;
+
+	EnemyType = AIConfig->EnemyType;
+	if (IsValid(AIConfig->MasterBehaviorTreeAsset.Get()))
+	{
+		BehaviorTreeAsset = AIConfig->MasterBehaviorTreeAsset;
+	}
+
+	AcceptanceRadius = AIConfig->AcceptanceRadius;
+	AttackRange = AIConfig->AttackRange;
+	SightRadius = AIConfig->SightRadius;
+	LoseSightSeconds = AIConfig->LoseSightSeconds;
+	PatrolRadius = AIConfig->PatrolRadius;
+	AttackCooldown = AIConfig->AttackCooldown;
+	LostSightSearchRadius = AIConfig->LostSightSearchRadius;
+	LostSightSearchObserveDuration = AIConfig->LostSightSearchObserveDuration;
+	LostSightHoldAngleDuration = AIConfig->LostSightHoldAngleDuration;
+	MaxLostSightSearches = AIConfig->MaxLostSightSearches;
+}
+
 bool AEFT_EnemyCharacter::IsAttackReady(float CurrentTime) const
 {
 	return CurrentTime - LastAttackTime >= AttackCooldown;
@@ -86,6 +110,7 @@ void AEFT_EnemyCharacter::EnableMovementOnLanded(const FHitResult& Hit)
 void AEFT_EnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	ApplyAIConfig();
 
 	if (!IsValid(GetAbilitySystemComponent())) return;
 

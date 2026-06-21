@@ -9,10 +9,20 @@ namespace EFTTags
 	namespace SetByCaller
 	{
 		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Projectile);
+		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage);
 	}
 	namespace Status
 	{
 		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Sprinting);
+	}
+	namespace AI
+	{
+		namespace Subtree
+		{
+			UE_DECLARE_GAMEPLAY_TAG_EXTERN(Combat);
+			UE_DECLARE_GAMEPLAY_TAG_EXTERN(Search);
+			UE_DECLARE_GAMEPLAY_TAG_EXTERN(Patrol);
+		}
 	}
 	namespace EFTAbilities
 	{
@@ -25,6 +35,15 @@ namespace EFTTags
 		namespace Enemy
 		{
 			UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attack);
+		}
+	}
+
+	namespace Abilities
+	{
+		namespace Weapon
+		{
+			UE_DECLARE_GAMEPLAY_TAG_EXTERN(Fire);
+			UE_DECLARE_GAMEPLAY_TAG_EXTERN(Reload);
 		}
 	}
 

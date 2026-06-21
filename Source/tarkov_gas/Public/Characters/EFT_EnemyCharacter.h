@@ -10,6 +10,7 @@
 class UAttributeSet;
 class UAbilitySystemComponent;
 class UBehaviorTree;
+class UEFT_EnemyAIConfigDataAsset;
 
 UCLASS()
 class TARKOV_GAS_API AEFT_EnemyCharacter : public AEFT_BaseCharacter
@@ -24,6 +25,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EFT|AI")
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EFT|AI")
+	TObjectPtr<UEFT_EnemyAIConfigDataAsset> AIConfig;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EFT|AI")
+	EEFTEnemyType EnemyType{EEFTEnemyType::Generic};
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "EFT|AI")
 	float AcceptanceRadius{500.f};
@@ -42,6 +49,18 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "EFT|AI")
 	float AttackCooldown{1.f};
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "EFT|AI")
+	float LostSightSearchRadius{600.f};
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "EFT|AI")
+	float LostSightSearchObserveDuration{1.25f};
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "EFT|AI")
+	float LostSightHoldAngleDuration{2.f};
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "EFT|AI", meta = (ClampMin = "0"))
+	int32 MaxLostSightSearches{1};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "EFT|AI")
 	float MinAttackDelay{.1f};
@@ -66,6 +85,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "EFT|AI")
 	EEFTEnemyAIState GetAIState() const { return AIState; }
+
+	UFUNCTION(BlueprintCallable, Category = "EFT|AI")
+	void ApplyAIConfig();
 
 	bool IsAttackReady(float CurrentTime) const;
 	void MarkAttackStarted(float CurrentTime);

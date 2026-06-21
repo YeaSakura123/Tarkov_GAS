@@ -14,7 +14,9 @@ enum class EEFTEnemyAIState : uint8
 	Chase,
 	Attack,
 	HitReact,
-	Dead
+	Dead,
+	Search,
+	HoldAngle
 };
 
 UENUM(BlueprintType)
@@ -25,5 +27,15 @@ enum class EEFTEnemyDecision : uint8
 	Investigate,
 	Chase,
 	Attack,
-	Wait
+	Wait,
+	SearchNearby,
+	HoldAngle
+};
+
+UENUM(BlueprintType)
+enum class EEFTEnemyType : uint8
+{
+	Generic,
+	Scav,
+	Rogue
 };

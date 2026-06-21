@@ -25,6 +25,9 @@ protected:
 	FBlackboardKeySelector HasLastKnownTargetLocationKey;
 
 	UPROPERTY(EditAnywhere, Category = "EFT|Blackboard")
+	FBlackboardKeySelector LastKnownTargetLocationKey;
+
+	UPROPERTY(EditAnywhere, Category = "EFT|Blackboard")
 	FBlackboardKeySelector AIStateKey;
 
 	UPROPERTY(EditAnywhere, Category = "EFT|Blackboard")
@@ -41,4 +44,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "EFT|Blackboard")
 	FBlackboardKeySelector AttackReadyKey;
+
+	UPROPERTY(EditAnywhere, Category = "EFT|Blackboard")
+	FBlackboardKeySelector LostSightSearchStartTimeKey;
+
+	UPROPERTY(EditAnywhere, Category = "EFT|Blackboard")
+	FBlackboardKeySelector LostSightSearchCountKey;
 };

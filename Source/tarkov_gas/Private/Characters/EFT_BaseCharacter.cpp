@@ -4,6 +4,8 @@
 #include "Characters/EFT_BaseCharacter.h"
 #include "AbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Weapons/EFT_WeaponComponent.h"
+#include "Weapons/EFT_WeaponDataAsset.h"
 
 namespace EFTTags
 {
@@ -15,11 +17,17 @@ AEFT_BaseCharacter::AEFT_BaseCharacter()
 	PrimaryActorTick.bCanEverTick = false;
 	
 	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+	WeaponComponent = CreateDefaultSubobject<UEFT_WeaponComponent>("WeaponComponent");
 }
 
 void AEFT_BaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	if (HasAuthority() && IsValid(WeaponComponent) && IsValid(DefaultWeaponData.Get()))
+	{
+		WeaponComponent->SetCurrentWeaponData(DefaultWeaponData);
+	}
+
 	ApplyStaminaRegenEffect();
 }
 

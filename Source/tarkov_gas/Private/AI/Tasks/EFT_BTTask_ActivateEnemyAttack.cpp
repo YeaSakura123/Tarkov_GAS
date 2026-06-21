@@ -49,7 +49,7 @@ EBTNodeResult::Type UEFT_BTTask_ActivateEnemyAttack::ExecuteTask(UBehaviorTreeCo
 	Enemy->SetAIState(EEFTEnemyAIState::Attack);
 	Enemy->RotateToTarget(Target);
 
-	const FGameplayTag AttackTag = EFTTags::EFTAbilities::Enemy::Attack;
+	const FGameplayTag AttackTag = EFTTags::Abilities::Weapon::Fire;
 	if (!ASC->TryActivateAbilitiesByTag(AttackTag.GetSingleTagContainer()))
 	{
 		return EBTNodeResult::Failed;

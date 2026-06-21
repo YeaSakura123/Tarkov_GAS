@@ -2,14 +2,25 @@
 
 #include "AI/EFT_EnemyAIController.h"
 
+#include "AI/EFT_EnemyAIConfigDataAsset.h"
 #include "AI/EFT_EnemyAITypes.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Characters/EFT_BaseCharacter.h"
 #include "Characters/EFT_EnemyCharacter.h"
+#include "GameplayTags/EFTTags.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
+
+namespace
+{
+	void SetDynamicSubtreeIfValid(UBehaviorTreeComponent* BehaviorTreeComponent, const FGameplayTag& InjectTag, UBehaviorTree* Subtree)
+	{
+		if (!IsValid(BehaviorTreeComponent) || !InjectTag.IsValid() || !IsValid(Subtree)) return;
+		BehaviorTreeComponent->SetDynamicSubtree(InjectTag, Subtree);
+	}
+}
 
 const FName AEFT_EnemyAIController::KeySelfActor(TEXT("SelfActor"));
 const FName AEFT_EnemyAIController::KeyTargetActor(TEXT("TargetActor"));
@@ -17,12 +28,15 @@ const FName AEFT_EnemyAIController::KeyLastKnownTargetLocation(TEXT("LastKnownTa
 const FName AEFT_EnemyAIController::KeyHasLastKnownTargetLocation(TEXT("bHasLastKnownTargetLocation"));
 const FName AEFT_EnemyAIController::KeySpawnLocation(TEXT("SpawnLocation"));
 const FName AEFT_EnemyAIController::KeyPatrolLocation(TEXT("PatrolLocation"));
+const FName AEFT_EnemyAIController::KeySearchLocation(TEXT("SearchLocation"));
 const FName AEFT_EnemyAIController::KeyAIState(TEXT("AIState"));
 const FName AEFT_EnemyAIController::KeyDesiredDecision(TEXT("DesiredDecision"));
 const FName AEFT_EnemyAIController::KeyTargetDistance(TEXT("TargetDistance"));
 const FName AEFT_EnemyAIController::KeyHasLineOfSight(TEXT("bHasLineOfSight"));
 const FName AEFT_EnemyAIController::KeyInAttackRange(TEXT("bInAttackRange"));
 const FName AEFT_EnemyAIController::KeyAttackReady(TEXT("bAttackReady"));
+const FName AEFT_EnemyAIController::KeyLostSightSearchStartTime(TEXT("LostSightSearchStartTime"));
+const FName AEFT_EnemyAIController::KeyLostSightSearchCount(TEXT("LostSightSearchCount"));
 
 AEFT_EnemyAIController::AEFT_EnemyAIController()
 {
@@ -50,6 +64,11 @@ void AEFT_EnemyAIController::OnPossess(APawn* InPawn)
 	Super::OnPossess(InPawn);
 
 	AEFT_EnemyCharacter* Enemy = Cast<AEFT_EnemyCharacter>(InPawn);
+	if (IsValid(Enemy))
+	{
+		Enemy->ApplyAIConfig();
+	}
+
 	if (!IsValid(Enemy) || !IsValid(Enemy->BehaviorTreeAsset)) return;
 	if (!IsValid(Enemy->BehaviorTreeAsset->BlackboardAsset)) return;
 
@@ -63,8 +82,18 @@ void AEFT_EnemyAIController::OnPossess(APawn* InPawn)
 	BlackboardComp->SetValueAsEnum(KeyAIState, static_cast<uint8>(EEFTEnemyAIState::Idle));
 	BlackboardComp->SetValueAsEnum(KeyDesiredDecision, static_cast<uint8>(EEFTEnemyDecision::None));
 	BlackboardComp->SetValueAsBool(KeyHasLastKnownTargetLocation, false);
+	BlackboardComp->SetValueAsVector(KeySearchLocation, Enemy->GetActorLocation());
+	ResetLostSightSearch(*BlackboardComp, -1.f);
 
 	RunBehaviorTree(Enemy->BehaviorTreeAsset);
+
+	const UEFT_EnemyAIConfigDataAsset* AIConfig = Enemy->AIConfig;
+	if (IsValid(AIConfig))
+	{
+		SetDynamicSubtreeIfValid(BehaviorTreeComponent, EFTTags::AI::Subtree::Combat, AIConfig->CombatSubtree.Get());
+		SetDynamicSubtreeIfValid(BehaviorTreeComponent, EFTTags::AI::Subtree::Search, AIConfig->SearchSubtree.Get());
+		SetDynamicSubtreeIfValid(BehaviorTreeComponent, EFTTags::AI::Subtree::Patrol, AIConfig->PatrolSubtree.Get());
+	}
 }
 
 void AEFT_EnemyAIController::OnUnPossess()
@@ -118,6 +147,7 @@ void AEFT_EnemyAIController::SetTarget(AActor* TargetActor)
 	BlackboardComp->SetValueAsObject(KeyTargetActor, TargetActor);
 	BlackboardComp->SetValueAsVector(KeyLastKnownTargetLocation, TargetActor->GetActorLocation());
 	BlackboardComp->SetValueAsBool(KeyHasLastKnownTargetLocation, true);
+	ResetLostSightSearch(*BlackboardComp, -1.f);
 }
 
 void AEFT_EnemyAIController::ClearTarget(AActor* TargetActor)
@@ -136,5 +166,13 @@ void AEFT_EnemyAIController::ClearTarget(AActor* TargetActor)
 	{
 		BlackboardComp->SetValueAsVector(KeyLastKnownTargetLocation, TargetActor->GetActorLocation());
 		BlackboardComp->SetValueAsBool(KeyHasLastKnownTargetLocation, true);
+		const UWorld* World = GetWorld();
+		ResetLostSightSearch(*BlackboardComp, IsValid(World) ? World->GetTimeSeconds() : 0.f);
 	}
+}
+
+void AEFT_EnemyAIController::ResetLostSightSearch(UBlackboardComponent& BlackboardComp, float SearchStartTime) const
+{
+	BlackboardComp.SetValueAsFloat(KeyLostSightSearchStartTime, SearchStartTime);
+	BlackboardComp.SetValueAsInt(KeyLostSightSearchCount, 0);
 }

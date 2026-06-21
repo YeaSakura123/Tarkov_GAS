@@ -117,7 +117,7 @@ void AEFT_PlayerController::Look(const FInputActionValue& Value)
 
 void AEFT_PlayerController::Primary()
 {
-	ActivateAbility(EFTTags::EFTAbilities::Primary);
+	ActivateAbility(EFTTags::Abilities::Weapon::Fire);
 }
 
 void AEFT_PlayerController::Secondary()

@@ -16,12 +16,15 @@ UEFT_BTService_UpdateEnemyDecision::UEFT_BTService_UpdateEnemyDecision()
 
 	TargetActorKey.SelectedKeyName = AEFT_EnemyAIController::KeyTargetActor;
 	HasLastKnownTargetLocationKey.SelectedKeyName = AEFT_EnemyAIController::KeyHasLastKnownTargetLocation;
+	LastKnownTargetLocationKey.SelectedKeyName = AEFT_EnemyAIController::KeyLastKnownTargetLocation;
 	AIStateKey.SelectedKeyName = AEFT_EnemyAIController::KeyAIState;
 	DesiredDecisionKey.SelectedKeyName = AEFT_EnemyAIController::KeyDesiredDecision;
 	TargetDistanceKey.SelectedKeyName = AEFT_EnemyAIController::KeyTargetDistance;
 	HasLineOfSightKey.SelectedKeyName = AEFT_EnemyAIController::KeyHasLineOfSight;
 	InAttackRangeKey.SelectedKeyName = AEFT_EnemyAIController::KeyInAttackRange;
 	AttackReadyKey.SelectedKeyName = AEFT_EnemyAIController::KeyAttackReady;
+	LostSightSearchStartTimeKey.SelectedKeyName = AEFT_EnemyAIController::KeyLostSightSearchStartTime;
+	LostSightSearchCountKey.SelectedKeyName = AEFT_EnemyAIController::KeyLostSightSearchCount;
 }
 
 void UEFT_BTService_UpdateEnemyDecision::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -60,6 +63,14 @@ void UEFT_BTService_UpdateEnemyDecision::TickNode(UBehaviorTreeComponent& OwnerC
 			bHasLineOfSight = AIController->LineOfSightTo(Target);
 			bInAttackRange = TargetDistance <= Enemy->AttackRange;
 
+			if (bHasLineOfSight)
+			{
+				BlackboardComp->SetValueAsVector(LastKnownTargetLocationKey.SelectedKeyName, Target->GetActorLocation());
+				BlackboardComp->SetValueAsBool(HasLastKnownTargetLocationKey.SelectedKeyName, true);
+				BlackboardComp->SetValueAsFloat(LostSightSearchStartTimeKey.SelectedKeyName, -1.f);
+				BlackboardComp->SetValueAsInt(LostSightSearchCountKey.SelectedKeyName, 0);
+			}
+
 			const UWorld* World = Enemy->GetWorld();
 			bAttackReady = IsValid(World) && Enemy->IsAttackReady(World->GetTimeSeconds());
 
@@ -79,10 +90,39 @@ void UEFT_BTService_UpdateEnemyDecision::TickNode(UBehaviorTreeComponent& OwnerC
 			Enemy->SetCombatTarget(nullptr);
 			BlackboardComp->ClearValue(TargetActorKey.SelectedKeyName);
 
+			if (IsValid(Target) && !Target->IsAlive())
+			{
+				BlackboardComp->ClearValue(LastKnownTargetLocationKey.SelectedKeyName);
+				BlackboardComp->SetValueAsBool(HasLastKnownTargetLocationKey.SelectedKeyName, false);
+				BlackboardComp->SetValueAsFloat(LostSightSearchStartTimeKey.SelectedKeyName, -1.f);
+				BlackboardComp->SetValueAsInt(LostSightSearchCountKey.SelectedKeyName, 0);
+			}
+
 			if (BlackboardComp->GetValueAsBool(HasLastKnownTargetLocationKey.SelectedKeyName))
 			{
-				NewState = EEFTEnemyAIState::Investigate;
-				NewDecision = EEFTEnemyDecision::Investigate;
+				const UWorld* World = Enemy->GetWorld();
+				const float CurrentTime = IsValid(World) ? World->GetTimeSeconds() : 0.f;
+				const float SearchStartTime = BlackboardComp->GetValueAsFloat(LostSightSearchStartTimeKey.SelectedKeyName);
+				if (SearchStartTime < 0.f)
+				{
+					BlackboardComp->SetValueAsFloat(LostSightSearchStartTimeKey.SelectedKeyName, CurrentTime);
+					BlackboardComp->SetValueAsInt(LostSightSearchCountKey.SelectedKeyName, 0);
+				}
+
+				const FVector LastKnownTargetLocation = BlackboardComp->GetValueAsVector(LastKnownTargetLocationKey.SelectedKeyName);
+				TargetDistance = FVector::Dist(Enemy->GetActorLocation(), LastKnownTargetLocation);
+
+				const int32 SearchCount = BlackboardComp->GetValueAsInt(LostSightSearchCountKey.SelectedKeyName);
+				if (SearchCount < FMath::Max(0, Enemy->MaxLostSightSearches))
+				{
+					NewState = EEFTEnemyAIState::Search;
+					NewDecision = EEFTEnemyDecision::SearchNearby;
+				}
+				else
+				{
+					NewState = EEFTEnemyAIState::HoldAngle;
+					NewDecision = EEFTEnemyDecision::HoldAngle;
+				}
 			}
 			else
 			{
